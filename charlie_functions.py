@@ -7,18 +7,22 @@ def get_games(start_year,end_year):
     years = range(start_year,end_year+1)
     games = []
     for y in years:
-        games.append(mlb.schedule(start_date='{}-01-01'.format(y),end_date='{}-12-29'.format(y),sportId='1'))
-    return games
+        try:
+            games.append(mlb.schedule(start_date='{}-01-01'.format(y),end_date='{}-12-29'.format(y),sportId='1'))
+        except:
+            get_games(y,y)
 
-    df = pd.DataFrame(games)
+    return [item for sublist in games for item in sublist]
+
+    #df = pd.DataFrame(games)
 
     #df = df[df['game_type']=='R']
-    df = df[['game_id','game_datetime','game_date','status','away_id','home_id','game_type']]
-    df['game_datetime'] = df['game_datetime'].map(lambda x: x.replace('T',' ').strip('Z'))
+    #df = df[['game_id','game_datetime','game_date','status','away_id','home_id','game_type']]
+    #df['game_datetime'] = df['game_datetime'].map(lambda x: x.replace('T',' ').strip('Z'))
     # duplicate_games = df[df['game_id'].duplicated(keep=False)==True]['game_id']
     # df.drop(duplicate_games.index, inplace=True)
 
-    return df
+    #return df
 
 def get_teams(ids):
     #format list of teams from MYSql query into a single, de-duped list
