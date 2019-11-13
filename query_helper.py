@@ -25,10 +25,6 @@ def connect(database_name):
     global cursor
     cursor = cnx.cursor()
 
-
-# In[9]:
-
-
 def query(query_string):
     connect(database_name)
     
@@ -37,7 +33,6 @@ def query(query_string):
     
     cursor.close()
     cnx.close()
-    
     
 def query_to_df(query_string):
     connect(database_name)
