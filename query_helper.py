@@ -47,7 +47,7 @@ def query_to_df(query_string):
     cnx.close()
 
 def create_table(create_query):    
-    cursor = cnx.cursor()
+    connect(database_name)
     try:
         print("Creating a new table")
         cursor.execute(create_query)
@@ -83,6 +83,20 @@ def insert_venue(venue_dict):
                 right_line)
                 VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
     data = tuple(venue_dict.values())
+    cursor.execute(statement, data)
+    cnx.commit()
+    
+def insert_date(date_dict):
+    connect(database_name)
+    statement = """INSERT INTO game_dateTime(
+                gameid,
+                dateTime,
+                originalDate,
+                dayNight,
+                time,
+                ampm)
+                VALUES (%s,%s,%s,%s,%s,%s)"""
+    data = tuple(date_dict.values())
     cursor.execute(statement, data)
     cnx.commit()
     

@@ -30,7 +30,5 @@ duplicate_games = df[df['game_id'].duplicated(keep=False)==True]['game_id']
 df.drop(duplicate_games.index, inplace=True)
 
 
-# In[76]:
-
 
 df
