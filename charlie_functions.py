@@ -1,6 +1,7 @@
 import statsapi as mlb
 import pandas as pd
 import time
+import query_helper
 
 # get games
 def get_games(start_year,end_year):
@@ -23,6 +24,48 @@ def get_games(start_year,end_year):
     # df.drop(duplicate_games.index, inplace=True)
 
     #return df
+
+def get_venue(game_id):
+    null_dict = {'null':'null'}
+    c = mlb.get('game',{'gamePk':game_id})['gameData']['venue']
+    venue = ({
+    'venue_id':c['id'],
+    'name':c.get('name','null'),
+    'city':c['location'].get('city','null'),
+    'state':c['location'].get('state','null'),
+    'latitude':c['location'].get('defaultCoordinates',null_dict).get('latitude','null'),
+    'longitude':c['location'].get('defaultCoordinates',null_dict).get('longitude','null'),
+    'timezone':c['timeZone'].get('tz','null'),
+    'capacity':c['fieldInfo'].get('capacity','null'),
+    'turf_type':c['fieldInfo'].get('turfType','null'),
+    'roof_type':c['fieldInfo'].get('roofType','null'),
+    'left_line':c['fieldInfo'].get('leftLine','null'),
+    'left_center':c['fieldInfo'].get('leftCenter','null'),
+    'center':c['fieldInfo'].get('center','null'),
+    'right_center':c['fieldInfo'].get('rightCenter','null'),
+    'right_line':c['fieldInfo'].get('rightLine','null'),
+    })
+    return venue
+
+# takes in a list of game_ids and inserts venue information for the game
+# if not already in DB
+def get_insert_venues(list_of_ids):
+
+    #connect to DB, get list of venue_ids already in DB
+    query_helper.connect('MLB_Stats')
+    venues = [item for sublist in query_helper.query('''select venue_id from venues''') for item in sublist]
+
+    #get venue info for game_ids in DB
+    for game_id in list_of_ids:
+        venue = get_venue(game_id)
+
+        # insert venue into db if it's not already there
+        if venue['venue_id'] not in venues:
+            query_helper.insert_venue(venue)
+            print('inserted',venue['venue_id'])
+            venues.append(venue['venue_id'])
+        else:
+            print('already inserted',game_id)
 
 def get_teams(ids):
     #format list of teams from MYSql query into a single, de-duped list
