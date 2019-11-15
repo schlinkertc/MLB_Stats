@@ -1,5 +1,11 @@
 # Untracked files:
 
+<<<<<<< HEAD
 *.config.py
 __pycache__/
 .ipynb_checkpoints
+=======
+/Users/schlinkertc/Flatiron/projects/MLB_Stats/config.py
+/Users/schlinkertc/Flatiron/projects/MLB_Stats/__pycache__
+/Users/schlinkertc/Flatiron/projects/MLB_Stats/.ipynb_checkpoints/
+>>>>>>> charlie
