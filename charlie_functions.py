@@ -92,36 +92,36 @@ def get_teams(ids):
     return df
 
 ## I used the following code to query our AWS database and create DataFrames. DataFrames were later merged
-## into a master DataFrame for easier reading. 
+## into a master DataFrame for easier reading.
 
 query_helper.set_database_name('MLB_Stats')
 
-games_teams = query_helper.query_to_df("""select G.gameid, G.home_team, t.team_name as away_team, G.game_date, G.status from 
+games_teams = query_helper.query_to_df("""select G.gameid, G.home_team, t.team_name as away_team, G.game_date, G.status from
 (select g.gameid, g.game_date, g.status, t.team_name as home_team, g.away_id
-from MLB_Stats.games g 
+from MLB_Stats.games g
 inner join MLB_Stats.teams t on t.team_id=g.home_id) G
 inner join MLB_Stats.teams t on t.team_id=G.away_id;""")
 
-runs_games = query_helper.query_to_df("""SELECT A.gameid, A.total_runs, t.league FROM 
+runs_games = query_helper.query_to_df("""SELECT A.gameid, A.total_runs, t.league FROM
 (SELECT g.gameid, i.home_team_runs + i.away_team_runs as total_runs, g.home_id
 from games g
 inner join game_info i on i.gameid=g.gameid) A
 inner join teams t on t.team_id=A.home_id;""")
 
-df_weather = query_helper.query_to_df("""select 
+df_weather = query_helper.query_to_df("""select
 i.gameid,
 i.home_team_runs + i.away_team_runs as total_runs, i.weather_category
-from 
+from
 MLB_Stats.game_info i;""")
 
 df_temp = query_helper.query_to_df("""select
 i.gameid,
 i.home_team_runs + i.away_team_runs as total_runs, i.temp
-from 
+from
 MLB_Stats.game_info i;""")
 
 df_venue = query_helper.query_to_df("""
-    select 
+    select
     i.gameid, i.away_team_runs+i.home_team_runs as run_total,
     v.`name` as venue_name
     from game_info i
@@ -140,27 +140,27 @@ division_map = {'Boston Red Sox': 'AL_east',
  'Tampa Bay Rays': 'AL_east',
  'Toronto Blue Jays': 'AL_east',
  'Baltimore Orioles': 'AL_east',
- 'Minnesota Twins':'AL_central', 
- 'Kansas City Royals':'AL_central', 
- 'Detroit Tigers':'AL_central', 
- 'Chicago White Sox':'AL_central', 
+ 'Minnesota Twins':'AL_central',
+ 'Kansas City Royals':'AL_central',
+ 'Detroit Tigers':'AL_central',
+ 'Chicago White Sox':'AL_central',
  'Cleveland Indians':'AL_central',
- 'Los Angeles Angels':'AL_west', 
- 'Oakland Athletics':'AL_west', 
+ 'Los Angeles Angels':'AL_west',
+ 'Oakland Athletics':'AL_west',
  'Seattle Mariners':'AL_west',
  'Texas Rangers':'AL_west',
  'Houston Astros':'AL_west',
- 'Philadelphia Phillies':'NL_east', 
- 'Miami Marlins':'NL_east', 
- 'New York Mets':'NL_east', 
- 'Atlanta Braves':'NL_east', 
+ 'Philadelphia Phillies':'NL_east',
+ 'Miami Marlins':'NL_east',
+ 'New York Mets':'NL_east',
+ 'Atlanta Braves':'NL_east',
  'Washington Nationals':'NL_east',
- 'St. Louis Cardinals':'NL_central', 
- 'Milwaukee Brewers':'NL_central', 
+ 'St. Louis Cardinals':'NL_central',
+ 'Milwaukee Brewers':'NL_central',
  'Chicago Cubs':'NL_central',
  'Cincinnati Reds':'NL_central',
  'Pittsburgh Pirates':'NL_central',
- 'Los Angeles Dodgers':'NL_west', 
+ 'Los Angeles Dodgers':'NL_west',
  'Arizona Diamondbacks':'NL_west',
  'San Francisco Giants':'NL_west',
  'Colorado Rockies':'NL_west',
@@ -168,3 +168,31 @@ division_map = {'Boston Red Sox': 'AL_east',
 
 df_venue_teams['division'] = games_teams['home_team'].map(lambda x : division_map[x])
 
+def get_gameData(game_ids):
+    games = []
+
+    for game_id in game_ids:
+        APIcall = mlb.get('game',{"gamePk":game_id})
+
+        gameData = APIcall['gameData']
+
+        game = gameData['game']
+
+        game['home_id'] = gameData['teams']['home']['id']
+        game['away_id'] = gameData['teams']['away']['id']
+        game['venue_id'] = gameData['venue']['id']
+
+        games.append(game)
+    return pd.DataFrame(games)
+
+def get_weather(game_ids):
+    game_weather = []
+
+    for game_id in game_ids:
+        APIcall = mlb.get('game',{"gamePk":game_id})
+
+        weather = APIcall['gameData']['weather']
+        weather['pk'] = game_id
+
+        game_weather.append(weather)
+    return pd.DataFrame(game_weather)
